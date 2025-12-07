@@ -25,7 +25,12 @@
               pkgs.pandoc
             ];
 
-            packages = p: [ self'.packages.neorg-haskell-parser ];
+            packages = p: [ self'.packages.neorg-haskell-parser-full ];
+
+            # genericBuilderArgsModifier = args: {
+            #   doCheck = true;
+            # };
+            withHoogle = true;
           };
 
           packages =
