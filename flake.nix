@@ -22,6 +22,7 @@
               pkgs.haskell-language-server
               pkgs.haskellPackages.Cabal
               pkgs.haskellPackages.fourmolu
+              pkgs.pandoc
             ];
 
             packages = p: [ self'.packages.neorg-haskell-parser ];

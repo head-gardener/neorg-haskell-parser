@@ -1,6 +1,6 @@
 module Block where
 
-import Data.Text
+import Data.Text hiding (show)
 import Neorg.Document
 import Neorg.Parser qualified as Parser
 import Test.HUnit
