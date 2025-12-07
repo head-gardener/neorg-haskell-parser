@@ -1,6 +1,5 @@
 module Neorg.Parser.Tag where
 
-import Control.Applicative (liftA2)
 import Control.Monad
 import Data.List (intersperse)
 import Data.Map qualified as M
@@ -38,7 +37,7 @@ withinTag tagChar tagOffset lineParser = lexeme content
     content = do
       lineWhitespace <|> (spaces >> followedBy newline)
       choice
-        [ [] <$ (char tagChar >> text "end"),
+        [ try ([] <$ (char tagChar >> text "end")),
           liftA2 (:) (lineParser >-> newline) content
         ]
 

@@ -523,7 +523,7 @@ delimiterSpec = describe "Quote" $
       expectation @=? result
 
 tagSpec :: Spec
-tagSpec = describe "Heading" $ do
+tagSpec = describe "Tag" $ do
   it "Verbatim ranged tag" $ do
     let input = "@code\ntest\n@end"
         expectation =
@@ -564,6 +564,20 @@ tagSpec = describe "Heading" $ do
     let input = "  @code haskell\n \n  test\n  test\n  @end"
         expectation =
           Blocks [Block 1 $ NestableBlock $ VerbatimRangedTag $ VerbatimRangedTagCons (VerbatimRangedTagCode $ Just "haskell") "test\ntest"]
+    result <- parseBlocks input
+    expectation @=? result
+
+  it "Verbatim ranged tag with norg markup" $ do
+    let input = "@code\n**test**\n@end"
+        expectation =
+          Blocks [Block 1 $ NestableBlock $ VerbatimRangedTag $ VerbatimRangedTagCons (VerbatimRangedTagCode Nothing) "**test**"]
+    result <- parseBlocks input
+    expectation @=? result
+
+  it "Verbatim ranged tag with a tag char" $ do
+    let input = "@code\n@test\n@end"
+        expectation =
+          Blocks [Block 1 $ NestableBlock $ VerbatimRangedTag $ VerbatimRangedTagCons (VerbatimRangedTagCode Nothing) "@test"]
     result <- parseBlocks input
     expectation @=? result
 
