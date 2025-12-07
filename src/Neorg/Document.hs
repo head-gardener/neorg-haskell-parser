@@ -88,9 +88,11 @@ data VerbatimRangedTag = VerbatimRangedTagCons
   }
   deriving (Show, Eq, Generic)
 
-newtype VerbatimRangedTagType = VerbatimRangedTagCode
-  { language :: Maybe Text
-  }
+data VerbatimRangedTagType
+  = VerbatimRangedTagCode
+      { language :: Maybe Text
+      }
+  | VerbatimRangedTagUntyped {}
   deriving (Show, Eq, Generic)
 
 data TaskStatus = Undone | Done | Unclear | Urgent | Recurring | InProgress | OnHold | Cancelled deriving (Show, Eq, Generic, Enum, Bounded)

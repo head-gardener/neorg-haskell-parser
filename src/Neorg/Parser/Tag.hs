@@ -4,7 +4,7 @@ import Control.Monad
 import Data.List (intersperse)
 import Data.Map qualified as M
 import Data.Maybe
-import Data.Text (Text, pack, unpack)
+import Data.Text (Text, pack)
 import Neorg.Document
 import Neorg.Parser.Base
 import Neorg.Parser.Combinators
@@ -25,8 +25,8 @@ verbatimRangedTag = do
       (pred . pred . unPos . sourceColumn <$> getSourcePos)
       tagName
   guard $ name /= "end"
-  let maybeTag = M.lookup name validTags
-  tagType <- fromMaybe (fail $ "Tag " <> unpack name <> " is not supported") maybeTag
+  let maybeTag = M.lookup name definedTags
+  tagType <- fromMaybe undefinedTagType maybeTag
   newline
   !content <- withinTag '@' whitespaceToSkip takeLine
   pure $ VerbatimRangedTagCons tagType $ mconcat $ intersperse "\n" $ filter (/= "") content
@@ -49,7 +49,11 @@ tagName = lexemeSpaces $ takeWhile1Chars (Just "Tag name") (`notElem` (" \n" :: 
 textParameter :: Parser Text
 textParameter = lexemeSpaces $ takeWhile1Chars (Just "Tag paremter") (`notElem` (" \n" :: String))
 
-validTags :: M.Map Text (Parser VerbatimRangedTagType)
-validTags = M.fromList [codeTag]
+-- Arbitrary tag, discards all params
+undefinedTagType :: Parser VerbatimRangedTagType
+undefinedTagType = VerbatimRangedTagUntyped <$ takeLine
+
+definedTags :: M.Map Text (Parser VerbatimRangedTagType)
+definedTags = M.fromList [codeTag]
   where
     codeTag = ("code", VerbatimRangedTagCode <$> optional textParameter)

@@ -73,6 +73,7 @@ convertQuote (QuoteCons _ status content) = do
 convertVerbatimRangedTag :: VerbatimRangedTag -> Convert P.Blocks
 convertVerbatimRangedTag (VerbatimRangedTagCons tagType content) = case tagType of
   VerbatimRangedTagCode language -> pure $ P.codeBlockWith ("", maybeToList language, []) content
+  VerbatimRangedTagUntyped -> pure $ P.lineBlock $ [ P.text content ]
 
 convertTaskStatus :: TaskStatus -> Convert P.Inlines
 convertTaskStatus status = pure $ P.text $ case status of

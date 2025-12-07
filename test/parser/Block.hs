@@ -567,6 +567,13 @@ tagSpec = describe "Tag" $ do
     result <- parseBlocks input
     expectation @=? result
 
+  xit "Verbatim ranged tag with multi-word parameters" $ do
+    let input = "@code haskell\\ lang\ntest\n@end"
+        expectation =
+          Blocks [Block 1 $ NestableBlock $ VerbatimRangedTag $ VerbatimRangedTagCons (VerbatimRangedTagCode $ Just "haskell lang") "test"]
+    result <- parseBlocks input
+    expectation @=? result
+
   it "Verbatim ranged tag with norg markup" $ do
     let input = "@code\n**test**\n@end"
         expectation =
@@ -585,6 +592,16 @@ tagSpec = describe "Tag" $ do
     let input = "  @code haskell lua\n \n  test\n  test\n  @end"
     parseBlocksShouldFail input
 
-  it "Verbatim ranged tag with unknown tag" $ do
-    let input = "@sometag\n@end"
-    parseBlocksShouldFail input
+  it "Verbatim ranged tag with an unknown tag" $ do
+    let input = "@sometag\ntest\n@end"
+        expectation =
+          Blocks [Block 1 $ NestableBlock $ VerbatimRangedTag $ VerbatimRangedTagCons (VerbatimRangedTagUntyped) "test"]
+    result <- parseBlocks input
+    expectation @=? result
+
+  it "Verbatim ranged tag with an unknown tag and parameters" $ do
+    let input = "@sometag param param param\ntest\n@end"
+        expectation =
+          Blocks [Block 1 $ NestableBlock $ VerbatimRangedTag $ VerbatimRangedTagCons (VerbatimRangedTagUntyped) "test"]
+    result <- parseBlocks input
+    expectation @=? result
