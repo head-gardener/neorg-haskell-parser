@@ -1,8 +1,9 @@
 module Neorg.Document where
 
 import Data.Maybe (fromMaybe)
-import Data.Text
+import Data.Text (Text, pack, show)
 import GHC.Generics (Generic)
+import Prelude hiding (show)
 
 newtype Document = Document Blocks deriving (Show, Eq, Generic)
 
@@ -119,7 +120,7 @@ charToTaskStatus = \case
 
 norgLocationDescription :: NorgLocation -> Paragraph
 norgLocationDescription (HeadingLocation _ t) = t
-norgLocationDescription (LineNumberLocation i) = ParagraphCons [Word $ pack (show i)]
+norgLocationDescription (LineNumberLocation i) = ParagraphCons [Word $ show i]
 norgLocationDescription (MagicLocation t) = t
 
 rawParagraph :: Paragraph -> Text
@@ -133,4 +134,4 @@ rawParagraph (ParagraphCons paraElements) = flip foldMap paraElements $ \case
     CurrentFile norgLocation -> rawParagraph $ norgLocationDescription norgLocation
     Url path -> path
     NorgFile path norgLocation -> path <> maybe "" (rawParagraph . norgLocationDescription) norgLocation
-    ExternalFile path lineNumber -> path <> "-" <> pack (show lineNumber)
+    ExternalFile path lineNumber -> path <> "-" <> show lineNumber
