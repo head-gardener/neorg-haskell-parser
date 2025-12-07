@@ -26,3 +26,6 @@ release/
 no_upload/
 testing/
 tree-sitter-norg/
+
+.direnv
+result
