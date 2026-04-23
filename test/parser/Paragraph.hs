@@ -228,113 +228,137 @@ paragraphSpec = describe "Paragraph" $ do
     result <- parseParagraph input
     expectation @=? result
 
-  it "Link with only a location" $ do
-    let input = "{https://github.com/nvim-neorg/neorg}"
-        expectation = ParagraphCons [Link (Url "https://github.com/nvim-neorg/neorg") Nothing]
-    result <- parseParagraph input
-    expectation @=? result
+  xdescribe "Anchor" $ do
+    it "Anchor defined before being used" $ do
+      let input = "[Neorg]{https://github.com/nvim-neorg/neorg}\n[Neorg]"
+          expectation = ParagraphCons [Link (Url "https://github.com/nvim-neorg/neorg") Nothing, Link (Url "https://github.com/nvim-neorg/neorg") Nothing]
+      result <- parseParagraph input
+      expectation @=? result
 
-  it "Link with both a location and a description" $ do
-    let input = "{https://github.com/nvim-neorg/neorg}[Neorg]"
-        expectation = ParagraphCons [Link (Url "https://github.com/nvim-neorg/neorg") (Just $ ParagraphCons [Word "Neorg"])]
-    result <- parseParagraph input
-    expectation @=? result
+    it "Anchor defined after being used" $ do
+      let input = "[Neorg]\n[Neorg]{https://github.com/nvim-neorg/neorg}"
+          expectation = ParagraphCons [Link (Url "https://github.com/nvim-neorg/neorg") Nothing, Link (Url "https://github.com/nvim-neorg/neorg") Nothing]
+      result <- parseParagraph input
+      expectation @=? result
 
-  it "Link location separated by paragraph break" $ do
-    let input = "{link\n\n}"
-        expectation = ParagraphCons [Punctuation '{', Word "link"]
-    result <- parseParagraph input
-    expectation @=? result
+    it "Anchor description" $ do
+      let input = "[Neorg]{https://github.com/nvim-neorg/neorg}[test]\n[Neorg][test]"
+          expectation =
+            ParagraphCons
+              [ Link (Url "https://github.com/nvim-neorg/neorg") (Just $ ParagraphCons [Word "Neorg"]),
+                Link (Url "https://github.com/nvim-neorg/neorg") (Just $ ParagraphCons [Word "Neorg"])
+              ]
+      result <- parseParagraph input
+      expectation @=? result
 
-  it "Link description separated by paragraph break" $ do
-    let input = "[link\n\n]"
-        expectation = ParagraphCons [Punctuation '[', Word "link"]
-    result <- parseParagraph input
-    expectation @=? result
+  describe "Link" $ do
+    it "Link with only a location" $ do
+      let input = "{https://github.com/nvim-neorg/neorg}"
+          expectation = ParagraphCons [Link (Url "https://github.com/nvim-neorg/neorg") Nothing]
+      result <- parseParagraph input
+      expectation @=? result
 
-  it "Link location on line with no content" $ do
-    let input = "{link\n}"
-        expectation = ParagraphCons [Punctuation '{', Word "link", Space, Punctuation '}']
-    result <- parseParagraph input
-    expectation @=? result
+    it "Link with both a location and a description" $ do
+      let input = "{https://github.com/nvim-neorg/neorg}[Neorg]"
+          expectation = ParagraphCons [Link (Url "https://github.com/nvim-neorg/neorg") (Just $ ParagraphCons [Word "Neorg"])]
+      result <- parseParagraph input
+      expectation @=? result
 
-  it "Link description on line with no content" $ do
-    let input = "[link\n]"
-        expectation = ParagraphCons [Punctuation '[', Word "link", Space, Punctuation ']']
-    result <- parseParagraph input
-    expectation @=? result
+    it "Link location separated by paragraph break" $ do
+      let input = "{link\n\n}"
+          expectation = ParagraphCons [Punctuation '{', Word "link"]
+      result <- parseParagraph input
+      expectation @=? result
 
-  it "Link location with direct newline" $ do
-    let input = "{\nlink}"
-        expectation = ParagraphCons [Punctuation '{', Space, Word "link", Punctuation '}']
-    result <- parseParagraph input
-    expectation @=? result
+    it "Link description separated by paragraph break" $ do
+      let input = "[link\n\n]"
+          expectation = ParagraphCons [Punctuation '[', Word "link"]
+      result <- parseParagraph input
+      expectation @=? result
 
-  it "Link description with direct newline" $ do
-    let input = "[\nlink]"
-        expectation = ParagraphCons [Punctuation '[', Space, Word "link", Punctuation ']']
-    result <- parseParagraph input
-    expectation @=? result
+    it "Link location on line with no content" $ do
+      let input = "{link\n}"
+          expectation = ParagraphCons [Punctuation '{', Word "link", Space, Punctuation '}']
+      result <- parseParagraph input
+      expectation @=? result
 
-  it "Link with a norg file location" $ do
-    let input = "{:path:}"
-        expectation = ParagraphCons [Link (NorgFile "path" Nothing) Nothing]
-    result <- parseParagraph input
-    expectation @=? result
+    it "Link description on line with no content" $ do
+      let input = "[link\n]"
+          expectation = ParagraphCons [Punctuation '[', Word "link", Space, Punctuation ']']
+      result <- parseParagraph input
+      expectation @=? result
 
-  it "Link with a norg file location and line number" $ do
-    let input = "{:path:123}"
-        expectation = ParagraphCons [Link (NorgFile "path" (Just $ LineNumberLocation 123)) Nothing]
-    result <- parseParagraph input
-    expectation @=? result
+    it "Link location with direct newline" $ do
+      let input = "{\nlink}"
+          expectation = ParagraphCons [Punctuation '{', Space, Word "link", Punctuation '}']
+      result <- parseParagraph input
+      expectation @=? result
 
-  it "Link with a norg file location a heading" $ do
-    let input = "{:path:* heading}"
-        expectation = ParagraphCons [Link (NorgFile "path" (Just $ HeadingLocation 1 $ ParagraphCons [Word "heading"])) Nothing]
-    result <- parseParagraph input
-    expectation @=? result
+    it "Link description with direct newline" $ do
+      let input = "[\nlink]"
+          expectation = ParagraphCons [Punctuation '[', Space, Word "link", Punctuation ']']
+      result <- parseParagraph input
+      expectation @=? result
 
-  it "Link with a norg file location a magic location" $ do
-    let input = "{:path:# magic}"
-        expectation = ParagraphCons [Link (NorgFile "path" (Just $ MagicLocation $ ParagraphCons [Word "magic"])) Nothing]
-    result <- parseParagraph input
-    expectation @=? result
+    it "Link with a norg file location" $ do
+      let input = "{:path:}"
+          expectation = ParagraphCons [Link (NorgFile "path" Nothing) Nothing]
+      result <- parseParagraph input
+      expectation @=? result
 
-  it "Link with a magic location" $ do
-    let input = "{# magic}"
-        expectation = ParagraphCons [Link (CurrentFile (MagicLocation $ ParagraphCons [Word "magic"])) Nothing]
-    result <- parseParagraph input
-    expectation @=? result
+    it "Link with a norg file location and line number" $ do
+      let input = "{:path:123}"
+          expectation = ParagraphCons [Link (NorgFile "path" (Just $ LineNumberLocation 123)) Nothing]
+      result <- parseParagraph input
+      expectation @=? result
 
-  it "Link with line number" $ do
-    let input = "{123}"
-        expectation = ParagraphCons [Link (CurrentFile (LineNumberLocation 123)) Nothing]
-    result <- parseParagraph input
-    expectation @=? result
+    it "Link with a norg file location a heading" $ do
+      let input = "{:path:* heading}"
+          expectation = ParagraphCons [Link (NorgFile "path" (Just $ HeadingLocation 1 $ ParagraphCons [Word "heading"])) Nothing]
+      result <- parseParagraph input
+      expectation @=? result
 
-  it "Link with heading location" $ do
-    let input = "{*** heading}"
-        expectation = ParagraphCons [Link (CurrentFile (HeadingLocation 3 $ ParagraphCons [Word "heading"])) Nothing]
-    result <- parseParagraph input
-    expectation @=? result
+    it "Link with a norg file location a magic location" $ do
+      let input = "{:path:# magic}"
+          expectation = ParagraphCons [Link (NorgFile "path" (Just $ MagicLocation $ ParagraphCons [Word "magic"])) Nothing]
+      result <- parseParagraph input
+      expectation @=? result
 
-  it "External link" $ do
-    let input = "{/ test}"
-        expectation = ParagraphCons [Link (ExternalFile "test" Nothing) Nothing]
-    result <- parseParagraph input
-    expectation @=? result
+    it "Link with a magic location" $ do
+      let input = "{# magic}"
+          expectation = ParagraphCons [Link (CurrentFile (MagicLocation $ ParagraphCons [Word "magic"])) Nothing]
+      result <- parseParagraph input
+      expectation @=? result
 
-  it "External link with line number" $ do
-    let input = "{/ test:123}"
-        expectation = ParagraphCons [Link (ExternalFile "test" (Just 123)) Nothing]
-    result <- parseParagraph input
-    expectation @=? result
+    it "Link with line number" $ do
+      let input = "{123}"
+          expectation = ParagraphCons [Link (CurrentFile (LineNumberLocation 123)) Nothing]
+      result <- parseParagraph input
+      expectation @=? result
 
-  it "External link with incorrect line number" $ do
-    let input = "{/ test:}"
-        expectation = ParagraphCons [Punctuation '{', Punctuation '/', Space, Word "test", Punctuation ':', Punctuation '}']
-    result <- parseParagraph input
-    expectation @=? result
+    it "Link with heading location" $ do
+      let input = "{*** heading}"
+          expectation = ParagraphCons [Link (CurrentFile (HeadingLocation 3 $ ParagraphCons [Word "heading"])) Nothing]
+      result <- parseParagraph input
+      expectation @=? result
+
+    it "External link" $ do
+      let input = "{/ test}"
+          expectation = ParagraphCons [Link (ExternalFile "test" Nothing) Nothing]
+      result <- parseParagraph input
+      expectation @=? result
+
+    it "External link with line number" $ do
+      let input = "{/ test:123}"
+          expectation = ParagraphCons [Link (ExternalFile "test" (Just 123)) Nothing]
+      result <- parseParagraph input
+      expectation @=? result
+
+    it "External link with incorrect line number" $ do
+      let input = "{/ test:}"
+          expectation = ParagraphCons [Punctuation '{', Punctuation '/', Space, Word "test", Punctuation ':', Punctuation '}']
+      result <- parseParagraph input
+      expectation @=? result
 
   it "Paragraph segment" $ do
     let input = "Segment1\nSegment2"
